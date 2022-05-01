@@ -18,11 +18,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('The API description')
+    .setTitle('API (DailyTrends)')
+    .setDescription('API for feeding and getting news.')
     .setVersion('1.0')
-    .addTag('customers')
-    .addTag('organizations')
+    .addTag('feed')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/doc', app, document);
