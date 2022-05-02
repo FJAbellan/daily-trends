@@ -19,13 +19,15 @@ export class FeedService {
     const feeds = await this.feedModel.find().skip(0).limit(10).exec();
     if (feeds.length < 10) {
       await this.crawlerService.init();
-      const feeds = await this.crawlerService.loadElPaisFeed();
+      const feedsPais = await this.crawlerService.loadElPaisFeed();
+      const feedsMundo = await this.crawlerService.loadElMundoFeed();
+      const feedsDailyTrends = feedsPais.concat(feedsMundo);
       await this.crawlerService.close();
-      for (const feed of feeds) {
+      for (const feed of feedsDailyTrends) {
         await this.feedModel.create(plainToInstance(CreateFeedDto, feed));
       }
     }
-    return await this.feedModel.find().skip(0).limit(5).exec();
+    return await this.feedModel.find().skip(0).limit(10).exec();
   }
 
   public async findAll(paginationQuery: PaginationQueryDto): Promise<Feed[]> {

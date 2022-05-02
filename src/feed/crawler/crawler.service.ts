@@ -60,16 +60,50 @@ export class CrawlerService {
   }
 
   async loadElMundoFeed() {
+    this.logger.log('Loading ElMundo.es');
     if (this.page) {
-      await this.page.goto('https://elmundo.com');
+      await this.page.goto('https://elmundo.es', {
+        timeout: 60000,
+        waitUntil: 'networkidle2',
+      });
+
+      // Wait for suggest overlay to appear and click "Accept".
+      const acceptCookies = '#didomi-notice-agree-button';
+      await this.page.waitForSelector(acceptCookies, {
+        visible: true,
+        hidden: true,
+        timeout: 35000,
+      });
+      await this.page.click(acceptCookies);
+
+      // Wait for the results page to load and display the results.
+      const resultsSelector = 'article';
+      await this.page.waitForSelector(resultsSelector, {
+        visible: true,
+        hidden: true,
+      });
+
+      // Extract the results from the page.
+      this.page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+      const feeds = await this.page.evaluate((resultsSelector) => {
+        const articles = Array.from(document.querySelectorAll(resultsSelector));
+        console.log(articles.length);
+        const feeds = [];
+        for (let i = 0; i < 5; i++) {
+          const header = articles[i].querySelectorAll('header')[0]?.textContent;
+          const news = articles[i].querySelectorAll('p')[0]?.textContent;
+          feeds.push({ newspaper: 'ElMundo', head: header, news: news });
+        }
+        return feeds;
+      }, resultsSelector);
+
+      return feeds;
     }
   }
 
   async close() {
     this.logger.log('Closing browser.');
-    if (this.browser) {
-      await this.page.close();
-      await this.browser.close();
-    }
+    await this.page?.close();
+    await this.browser?.close();
   }
 }
