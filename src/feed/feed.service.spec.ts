@@ -7,6 +7,7 @@ import { NotFoundException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import { IFeed } from './interfaces/feed.interface';
 import { Model } from 'mongoose';
+import { CrawlerService } from './crawler/crawler.service';
 
 const mockFeed: any = {
   newspaper: 'firstName #1',
@@ -53,6 +54,15 @@ describe('FeedService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeedService,
+        {
+          provide: CrawlerService,
+          useValue: {
+            init: jest.fn(),
+            loadElPaisFeed: jest.fn(),
+            loadElMundoFeed: jest.fn(),
+            close: jest.fn(),
+          },
+        },
         {
           provide: getModelToken('Feed'),
           useValue: {

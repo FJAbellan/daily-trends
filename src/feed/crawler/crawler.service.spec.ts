@@ -6,7 +6,15 @@ describe('CrawlerService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CrawlerService],
+      providers: [
+        CrawlerService,
+        {
+          provide: 'LogerService',
+          useValue: {
+            log: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<CrawlerService>(CrawlerService);
