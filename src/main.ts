@@ -21,7 +21,7 @@ async function bootstrap() {
     .setTitle('API (DailyTrends)')
     .setDescription('API for feeding and getting news.')
     .setVersion('1.0')
-    .addTag('feed')
+    .addTag('Feed')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/doc', app, document);

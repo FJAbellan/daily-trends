@@ -13,38 +13,49 @@ import {
 } from '@nestjs/common';
 import { FeedService } from './feed.service';
 import { CreateFeedDto, UpdateFeedDto } from './dto';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
-import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('feed')
+@ApiTags('Feed')
 @Controller('feed')
 export class FeedController {
-  constructor(private customersService: FeedService) {}
+  constructor(private feedService: FeedService) {}
+
+  @Get(['daily-trend'])
+  public async getAllFeedDailyTrend(@Res() res) {
+    const feeds = await this.feedService.findLastFive();
+    return res.status(HttpStatus.OK).json(feeds);
+  }
 
   @Get()
   public async getAllFeed(
     @Res() res,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
-    const feed = await this.customersService.findAll(paginationQuery);
+    const feed = await this.feedService.findAll(paginationQuery);
     return res.status(HttpStatus.OK).json(feed);
   }
 
   @Get('/:id')
+  @ApiResponse({
+    status: 200,
+    description: 'The found record',
+    type: UpdateFeedDto,
+  })
   public async getFeed(@Res() res, @Param('id') customerId: string) {
     if (!customerId) {
       throw new NotFoundException('Feed ID does not exist');
     }
 
-    const Feed = await this.customersService.findOne(customerId);
+    const feed = await this.feedService.findOne(customerId);
 
-    return res.status(HttpStatus.OK).json(Feed);
+    return res.status(HttpStatus.OK).json(feed);
   }
 
   @Post()
   public async addFeed(@Res() res, @Body() createFeedDto: CreateFeedDto) {
     try {
-      const Feed = await this.customersService.create(createFeedDto);
+      const Feed = await this.feedService.create(createFeedDto);
       return res.status(HttpStatus.OK).json({
         message: 'Feed has been created successfully',
         Feed,
@@ -64,10 +75,7 @@ export class FeedController {
     @Body() updateFeedDto: UpdateFeedDto,
   ) {
     try {
-      const Feed = await this.customersService.update(
-        customerId,
-        updateFeedDto,
-      );
+      const Feed = await this.feedService.update(customerId, updateFeedDto);
       if (!Feed) {
         throw new NotFoundException('Feed does not exist!');
       }
@@ -84,16 +92,35 @@ export class FeedController {
   }
 
   @Delete('/:id')
-  public async deleteFeed(@Res() res, @Param('id') customerId: string) {
-    if (!customerId) {
+  public async deleteFeed(@Res() res, @Param('id') feedId: string) {
+    if (!feedId) {
       throw new NotFoundException('Feed ID does not exist');
     }
 
-    const Feed = await this.customersService.remove(customerId);
+    const Feed = await this.feedService.remove(feedId);
 
     return res.status(HttpStatus.OK).json({
       message: 'Feed has been deleted',
       Feed,
     });
+  }
+
+  @Post()
+  public async addDailyTrends(
+    @Res() res,
+    @Body() createFeedDto: CreateFeedDto,
+  ) {
+    try {
+      const Feed = await this.feedService.create(createFeedDto);
+      return res.status(HttpStatus.OK).json({
+        message: 'Feed has been created successfully',
+        Feed,
+      });
+    } catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'Error: Feed not created!',
+        status: 400,
+      });
+    }
   }
 }
